@@ -1,0 +1,1381 @@
+/**
+ * ═══════════════════════════════════════════════════════════════════════════════
+ * TEMPLATE EXHAUSTIF - E-SERVICE PORTAIL CITOYEN BÉNINOIS
+ * ═══════════════════════════════════════════════════════════════════════════════
+ * 
+ * Ce fichier contient TOUS les types de stages possibles avec documentation complète.
+ * Format: JSONC (JSON with Comments) - À utiliser comme RÉFÉRENCE uniquement.
+ * 
+ * Pour créer un nouveau service:
+ *   1. Copier TEMPLATE_BASE/ → PSxxxxx/
+ *   2. Modifier TEMPLATE_BASE.serviceconf.json (le fichier minimal)
+ *   3. Consulter ce fichier pour ajouter des stages supplémentaires
+ *   4. Voir README.md pour guide détaillé
+ * 
+ * Documentation officielle: bj-citizen-portal-service-development.md
+ * ═══════════════════════════════════════════════════════════════════════════════
+ */
+
+{
+  //═══════════════════════════════════════════════════════════════════════════════
+  // CONFIGURATION RACINE
+  //═══════════════════════════════════════════════════════════════════════════════
+  
+  "serviceId": "TEMPLATE_EXHAUSTIF",
+  // ID du service (ex: PS00565, PS01259)
+  // DOIT correspondre au nom du dossier ET à l'ID dans CatIS
+  
+  "serviceVersion": "0.1",
+  // Version du service (ex: 0.1, 0.2, 1.0)
+  // Correspond au sous-dossier de version
+  
+  "public": true,
+  // Si true: service accessible aux citoyens non authentifiés pour démarrer
+  // Si false: authentification requise
+  
+  // Configuration back-office optionnelle
+  "backOffice": {
+    "customColumnOfficial": "raisonsocial",
+    // Chemin vers colonne personnalisée dans la liste des demandes (back-office)
+    // Ex: "data.company.name" afficherait data.company.name comme colonne
+    
+    "customColumnTitleOfficial": {
+      "en": "COMPANY NAME",
+      "fr": "NOM COMMERCIAL"
+    }
+    // Titre traduit de la colonne personnalisée
+  },
+
+  //═══════════════════════════════════════════════════════════════════════════════
+  // STAGES - TOUTES LES ÉTAPES DU WORKFLOW
+  //═══════════════════════════════════════════════════════════════════════════════
+  /*
+   * Convention de nommage:
+   *   - MAJUSCULES: main stages (états du workflow)
+   *   - minuscules-tirets: intermediate stages (actions)
+   * 
+   * Types de stages disponibles:
+   *   OBLIGATOIRES:
+   *     - start: Point de départ (1 seul par service)
+   *     - main: États majeurs du workflow
+   * 
+   *   MANUELS (requièrent interaction utilisateur):
+   *     - ui: Formulaire de saisie
+   *     - pay: Paiement KKiaPay/FedaPay
+   * 
+   *   AUTOMATIQUES (exécution automatique):
+   *     - uxp: Intégration SOAP/XML
+   *     - uxp-rest: Intégration REST/JSON
+   *     - gen-document: Génération PDF
+   *     - email: Envoi email
+   *     - notification: Envoi SMS
+   *     - person-data: Récupération données citoyen
+   *     - hardcoded-data: Injection données fixes
+   *     - blacklist: Suppression de champs
+   *     - alert: Affichage message utilisateur
+   *     - share-files: Partage ZIP multi-fichiers
+   *     - share-one-pdf: Partage PDF unique
+   */
+  
+  "stages": {
+
+    //═══════════════════════════════════════════════════════════════════════════════
+    // 1. START STAGE (OBLIGATOIRE - 1 SEUL PAR SERVICE)
+    //═══════════════════════════════════════════════════════════════════════════════
+    /*
+     * Premier stage de tout service. Définit:
+     *   - Les permissions initiales
+     *   - L'état de départ affiché à l'utilisateur
+     * 
+     * À l'initialisation, le moteur crée automatiquement:
+     *   metaData.citizen = [NPI_du_citoyen_qui_démarre]
+     */
+    
+    "start": {
+      "type": "start",
+      // Type fixe: "start" (obligatoire, unique dans le service)
+      
+      "shortTitle": {
+        "en": "STARTED",
+        "fr": "DÉBUT"
+      },
+      // Titre court affiché dans la liste des demandes AVANT le premier main stage
+      // Recommandation: 1-2 mots maximum
+      
+      "title": {
+        "en": "Application started",
+        "fr": "Demande démarrée"
+      },
+      // Description complète affichée dans la timeline de la demande
+      
+      "pathTitle": {
+        "en": "Continue application creation",
+        "fr": "Poursuivre la demande"
+      },
+      // Titre du chemin pour continuer la demande (timeline)
+      
+      "permissions": {
+        // Définit qui peut continuer après le start
+        
+        "type": "meta-array",
+        // Type de permission:
+        //   - "meta-array": tableau de NPIs dans metaData
+        //   - "hardcoded-array": liste fixe de groupes/NPIs
+        //   - "public": accessible à tous sans restriction
+        
+        "actor": "CITIZEN",
+        // Type d'acteur:
+        //   - "CITIZEN": citoyens (utilisateurs du portail)
+        //   - "OFFICIAL": agents/officiels (back-office)
+        
+        "metaPathToArray": ["citizen"],
+        // Chemin vers le tableau de NPIs dans metaData
+        // ["citizen"] → metaData.citizen
+        // ["owners", "list"] → metaData.owners.list
+        
+        "public": true
+        // Si true: accessible sans authentification
+        // Utile pour services publics grand public
+      },
+      
+      // VARIANTE 1: Permissions hardcoded (agents spécifiques)
+      /*
+      "permissions": {
+        "type": "hardcoded-array",
+        "actor": "OFFICIAL",
+        "array": ["Admin-Group", "Manager-Group", "Reviewer-Group"]
+        // Liste fixe des groupes d'agents autorisés
+      },
+      */
+      
+      // VARIANTE 2: Permissions publiques totales
+      /*
+      "permissions": {
+        "type": "public"
+        // Tout le monde peut continuer (rare)
+      },
+      */
+      
+      "transitions": {
+        "type": "single",
+        // Type de transition (pour start: toujours "single")
+        
+        "nextStage": "citizen-input"
+        // ID du prochain stage
+        // Options fréquentes:
+        //   - "citizen-input": formulaire citoyen
+        //   - "get-citizen-data": récup données auto
+        //   - "uxp-check": vérification externe
+      }
+    },
+
+    //═══════════════════════════════════════════════════════════════════════════════
+    // 2. UI STAGE - FORMULAIRE DE SAISIE UTILISATEUR
+    //═══════════════════════════════════════════════════════════════════════════════
+    /*
+     * Affiche un formulaire défini dans un fichier ui/*.json
+     * 
+     * Fonctionnement:
+     *   1. Frontend affiche le formulaire (cf. uiConfiguration)
+     *   2. Utilisateur remplit et soumet
+     *   3. Données soumises sont SHALLOW MERGED dans data/metaData
+     *   4. Validation selon règles du fichier UI
+     * 
+     * ⚠️ SHALLOW MERGE: objets imbriqués sont écrasés entièrement!
+     * Ex: si data.person = {name: "X", age: 30} existe
+     *     et UI envoie data.person = {name: "Y"}
+     *     → résultat: data.person = {name: "Y"} (age perdu!)
+     * 
+     * Exceptions mappables:
+     *   - REQUIRED_FIELDS_MISSING: champs obligatoires manquants
+     *   - FIELDS_NOT_ALLOWED: champs non autorisés envoyés
+     */
+    
+    "citizen-input": {
+      "type": "ui",
+      // Type: "ui" pour formulaire utilisateur
+      
+      "uiConfiguration": "citizen-input.json",
+      // Nom du fichier de configuration UI dans le dossier ui/
+      // Voir ui/README.md pour format et options complètes
+      
+      "transitions": {
+        "type": "single",
+        // "single": toujours même destination
+        
+        "nextStage": "REQUESTED",
+        // Prochaine étape après soumission réussie
+        
+        "onStageException": {
+          // Gestion des exceptions (FORTEMENT RECOMMANDÉ pour UI)
+          
+          "REQUIRED_FIELDS_MISSING": "citizen-input",
+          // Si champs requis manquants → retour au formulaire
+          
+          "FIELDS_NOT_ALLOWED": "citizen-input"
+          // Si champs non autorisés → retour au formulaire
+        }
+      }
+    },
+
+    // VARIANTE UI: avec branchement conditionnel
+    "official-review": {
+      "type": "ui",
+      "uiConfiguration": "official-review.json",
+      // Ce formulaire doit définir metaData.official.choice
+      
+      "transitions": {
+        "type": "map-by-meta",
+        // "map-by-meta": branche selon valeur dans metaData
+        
+        "metaPathToKey": ["official", "choice"],
+        // Chemin vers la valeur de branchement
+        // ["official", "choice"] → metaData.official.choice
+        
+        "map": {
+          // Mapping: valeur → destination
+          "approve": "gen-certificate",
+          // Si metaData.official.choice === "approve" → gen-certificate
+          
+          "reject": "REJECTED",
+          // Si === "reject" → REJECTED
+          
+          "request-changes": "alert-changes-requested"
+          // Si === "request-changes" → alert
+        },
+        
+        "onStageException": {
+          "REQUIRED_FIELDS_MISSING": "official-review",
+          "FIELDS_NOT_ALLOWED": "official-review"
+        }
+      }
+    },
+
+    //═══════════════════════════════════════════════════════════════════════════════
+    // 3. MAIN STAGE - ÉTAT MAJEUR DU WORKFLOW
+    //═══════════════════════════════════════════════════════════════════════════════
+    /*
+     * Représente un état dans le cycle de vie de la demande.
+     * 
+     * Caractéristiques:
+     *   - Affiché dans la liste des demandes (shortTitle)
+     *   - Apparaît dans la timeline (title)
+     *   - Peut avoir plusieurs chemins sortants (paths)
+     *   - Chaque chemin a ses propres permissions
+     * 
+     * Flags optionnels:
+     *   - "final": marque la demande comme terminée
+     *   - "accept": affichage vert (succès)
+     *   - "reject": affichage rouge (échec)
+     */
+    
+    "REQUESTED": {
+      "type": "main",
+      // Type: "main" pour état majeur
+      
+      "shortTitle": {
+        "en": "REQUESTED",
+        "fr": "DEMANDÉE"
+      },
+      // Titre court (1-2 mots) affiché dans la liste des demandes
+      
+      "title": {
+        "en": "Certificate has been requested",
+        "fr": "La demande a été soumise"
+      },
+      // Description complète affichée dans la timeline
+      
+      "transitions": [
+        // Array de chemins (paths) sortants
+        // Chaque chemin = un bouton/action possible depuis ce main stage
+        
+        {
+          "id": "review",
+          // ID unique du chemin (doit être unique dans TOUTE la config)
+          
+          "title": {
+            "en": "Review the application",
+            "fr": "Examiner la demande"
+          },
+          // Titre du bouton/action affiché à l'utilisateur
+          
+          "nextStage": "official-review",
+          // Premier intermediate stage de ce chemin
+          
+          "resultMainStages": ["APPROVED", "REJECTED", "CHANGES-REQUESTED"],
+          // Liste des main stages de sortie possibles
+          // (informatif, aide à comprendre le workflow)
+          
+          "permissions": {
+            // Qui peut démarrer ce chemin
+            
+            "type": "hardcoded-array",
+            "actor": "OFFICIAL",
+            "array": ["ReviewGroup", "ManagerGroup"]
+            // Seuls ces groupes d'agents peuvent examiner
+          }
+        },
+        
+        // Exemple: 2ème chemin (citoyen peut annuler)
+        /*
+        {
+          "id": "cancel",
+          "title": {
+            "en": "Cancel application",
+            "fr": "Annuler la demande"
+          },
+          "nextStage": "confirm-cancel",
+          "resultMainStages": ["CANCELLED"],
+          "permissions": {
+            "type": "meta-array",
+            "actor": "CITIZEN",
+            "metaPathToArray": ["citizen"]
+            // Seul le citoyen propriétaire peut annuler
+          }
+        }
+        */
+      ]
+    },
+
+    // VARIANTE MAIN: Stage final avec flag "accept"
+    "APPROVED": {
+      "type": "main",
+      "shortTitle": {
+        "en": "APPROVED",
+        "fr": "APPROUVÉE"
+      },
+      "title": {
+        "en": "The application has been approved",
+        "fr": "La demande a été approuvée"
+      },
+      "flags": ["final", "accept"],
+      // "final": marque comme terminée
+      // "accept": affichage vert (succès)
+      "transitions": []
+      // Aucune transition = stage final
+    },
+
+    // VARIANTE MAIN: Stage final avec flag "reject"
+    "REJECTED": {
+      "type": "main",
+      "shortTitle": {
+        "en": "REJECTED",
+        "fr": "REJETÉE"
+      },
+      "title": {
+        "en": "The application has been rejected",
+        "fr": "La demande a été rejetée"
+      },
+      "flags": ["final", "reject"],
+      // "final": terminée
+      // "reject": affichage rouge (échec)
+      "transitions": []
+    },
+
+    // VARIANTE MAIN: Stage intermédiaire (pas final)
+    "CHANGES-REQUESTED": {
+      "type": "main",
+      "shortTitle": {
+        "en": "CHANGES REQUESTED",
+        "fr": "MODIFICATIONS DEMANDÉES"
+      },
+      "title": {
+        "en": "Changes have been requested",
+        "fr": "Des modifications ont été demandées"
+      },
+      // Pas de flag "final" → pas terminé
+      "transitions": [
+        {
+          "id": "submit-changes",
+          "title": {
+            "en": "Submit changes",
+            "fr": "Soumettre les modifications"
+          },
+          "nextStage": "citizen-resubmit",
+          "resultMainStages": ["REQUESTED"],
+          "permissions": {
+            "type": "meta-array",
+            "actor": "CITIZEN",
+            "metaPathToArray": ["citizen"]
+          }
+        }
+      ]
+    },
+
+    //═══════════════════════════════════════════════════════════════════════════════
+    // 4. UXP-REST STAGE - INTÉGRATION REST/JSON
+    //═══════════════════════════════════════════════════════════════════════════════
+    /*
+     * Effectue une requête HTTP REST vers un service UXP externe.
+     * 
+     * Fonctionnement:
+     *   1. Lit le template JSON (uxp/templateFile)
+     *   2. Remplace les variables ${data.field} par valeurs réelles
+     *   3. Envoie la requête HTTP
+     *   4. Mappe la réponse JSON vers data/metaData (responseMapping)
+     * 
+     * Voir documentation: bj-citizen-portal-uxp-integration.adoc
+     * 
+     * Exceptions mappables:
+     *   - PROCESSING_ERROR: erreur inattendue
+     *   - INVALID_CONFIGURATION: template invalide
+     *   - MISSING_TEMPLATE_VARIABLE: variable ${} manquante
+     *   - MISSING_REQUIRED_NODE: nœud required absent dans réponse
+     *   - WEB_APPLICATION_EXCEPTION: HTTP 4xx/5xx
+     *   - CONNECTION_ERROR: échec connexion
+     */
+    
+    "get-company-info": {
+      "type": "uxp-rest",
+      // Type: "uxp-rest" pour requête REST/JSON
+      
+      "templateFile": "get-company.json",
+      // Nom du fichier template dans uxp/
+      // Voir uxp/README.md pour format
+      
+      "responseMapping": {
+        // Mapping: "destination.dans.data/metaData": {...}
+        
+        "data.company.name": {
+          "pointer": "/company/name",
+          // JSON Pointer vers la valeur dans la réponse
+          // Format: /path/to/field (notation slash)
+          
+          "required": true
+          // Si true: exception si absent dans réponse
+          // Si false: pas d'erreur si absent (valeur non ajoutée)
+        },
+        
+        "data.company.rccm": {
+          "pointer": "/company/registration/rccm",
+          "required": true
+        },
+        
+        "data.company.address": {
+          "pointer": "/company/address/full",
+          "required": false
+          // Optionnel: pas d'erreur si absent
+        },
+        
+        "metaData.uxp.status": {
+          "pointer": "/status"
+        }
+      },
+      
+      "transitions": {
+        "type": "single",
+        "nextStage": "display-company",
+        
+        "onStageException": {
+          // Gestion exhaustive des erreurs UXP-REST
+          
+          "PROCESSING_ERROR": "ERROR-uxp",
+          // Erreur inattendue → message générique
+          
+          "INVALID_CONFIGURATION": "ERROR-uxp",
+          // Template JSON invalide → message tech
+          
+          "MISSING_TEMPLATE_VARIABLE": "ERROR-missing-data",
+          // Variable ${} non trouvée → demander données manquantes
+          
+          "MISSING_REQUIRED_NODE": "ERROR-company-not-found",
+          // Nœud required absent → message "entreprise non trouvée"
+          
+          "WEB_APPLICATION_EXCEPTION": "ERROR-service-unavailable",
+          // Service retourne 4xx/5xx → message "service indisponible"
+          
+          "CONNECTION_ERROR": "ERROR-connection"
+          // Échec réseau → message "vérifiez connexion"
+        }
+      }
+    },
+
+    //═══════════════════════════════════════════════════════════════════════════════
+    // 5. UXP STAGE - INTÉGRATION SOAP/XML
+    //═══════════════════════════════════════════════════════════════════════════════
+    /*
+     * Effectue une requête SOAP/XML vers un service UXP (X-Road).
+     * 
+     * Fonctionnement:
+     *   1. Lit le template XML (uxp/template.templateFile)
+     *   2. Remplace variables ${data.field}
+     *   3. Envoie requête SOAP
+     *   4. Extrait valeurs via XPath (template.responseMap)
+     * 
+     * Voir documentation: bj-citizen-portal-uxp-integration.adoc
+     * 
+     * Exceptions mappables:
+     *   - CONFIG_ERROR: erreur parsing config/template
+     *   - CONNECTION_ERROR: erreur envoi/réception
+     *   - DATA_ERROR: nœud requis absent ou XPath échoué
+     *   - DATA_WARNING: nœud optionnel absent/multiple
+     */
+    
+    "check-eligibility": {
+      "type": "uxp",
+      // Type: "uxp" pour requête SOAP/XML
+      
+      "template": {
+        "templateFile": "check-eligibility.xml",
+        // Nom du fichier template XML dans uxp/
+        
+        "namespaces": {
+          // Mapping: préfixe → namespace URI
+          // Simplifie les expressions XPath
+          
+          "soapenv": "http://schemas.xmlsoap.org/soap/envelope/",
+          "wsdl": "http://x-road.eu/xsd/connector/service/v1",
+          "custom": "http://ministry.bj/schemas/v1"
+        },
+        
+        "responseMap": {
+          // Extraction via XPath
+          
+          "metaData.eligible": {
+            "xpath": "/soapenv:Envelope/soapenv:Body/wsdl:checkResponse/ELIGIBLE",
+            // Expression XPath (utilise les namespaces définis)
+            
+            "required": true
+            // Si absent: DATA_ERROR exception
+          },
+          
+          "data.eligibility.reason": {
+            "xpath": "/soapenv:Envelope/soapenv:Body/wsdl:checkResponse/REASON",
+            "required": false
+          }
+        }
+      },
+      
+      "transitions": {
+        "type": "map-by-meta",
+        "metaPathToKey": ["eligible"],
+        "map": {
+          "true": "continue-process",
+          "false": "REJECTED"
+        },
+        "onStageException": {
+          "CONFIG_ERROR": "ERROR-uxp",
+          "CONNECTION_ERROR": "ERROR-connection",
+          "DATA_ERROR": "ERROR-uxp",
+          "DATA_WARNING": "continue-process"
+          // DATA_WARNING: pas bloquant, on continue
+        }
+      }
+    },
+
+    //═══════════════════════════════════════════════════════════════════════════════
+    // 6. GEN-DOCUMENT STAGE - GÉNÉRATION DE PDF
+    //═══════════════════════════════════════════════════════════════════════════════
+    /*
+     * Génère un PDF à partir d'un template HTML.
+     * 
+     * Fonctionnement:
+     *   1. Lit le template HTML (pdf/template)
+     *   2. Remplace variables ${data.field} et ${metaData.field}
+     *   3. Appelle API génération PDF
+     *   4. Attache le PDF à la demande
+     * 
+     * Templates peuvent référencer:
+     *   - header-*.html et footer-*.html (automatique si présents)
+     *   - Images en base64 ou URL
+     *   - CSS inline
+     * 
+     * Voir documentation: bj-citizen-portal-pdf-generation.adoc
+     * 
+     * Exceptions mappables:
+     *   - NO_TEMPLATE: template HTML non trouvé
+     *   - READING_FILE_CONTENT_FAILED: erreur lecture stream PDF
+     *   - PERSISTING_FILE_CONTENT_FAILED: PDF trop gros ou erreur DB
+     *   - API_EXCEPTION: API génération retourne erreur
+     *   - CONNECTION_ERROR: échec connexion API
+     */
+    
+    "gen-certificate": {
+      "type": "gen-document",
+      // Type: "gen-document" pour génération PDF
+      
+      "template": "certificate.html",
+      // Nom du fichier template HTML dans pdf/
+      // Cherche automatiquement header-certificate.html et footer-certificate.html
+      
+      "fileName": "Certificate_${data.person.last_name}_${data.person.first_name}.pdf",
+      // Nom du PDF généré (variables ${} autorisées)
+      
+      // OPTIONNEL: lier des fichiers uploadés au PDF
+      /*
+      "bindToFile": "identity-documents",
+      // ID de l'upload (uploadId dans config UI)
+      // Attache les fichiers uploadés comme pages supplémentaires au PDF
+      */
+      
+      "transitions": {
+        "type": "single",
+        "nextStage": "share-certificate",
+        
+        "onStageException": {
+          "NO_TEMPLATE": "ERROR-pdf",
+          "READING_FILE_CONTENT_FAILED": "ERROR-pdf",
+          "PERSISTING_FILE_CONTENT_FAILED": "ERROR-pdf",
+          "API_EXCEPTION": "ERROR-pdf",
+          "CONNECTION_ERROR": "ERROR-pdf"
+          // Toutes les erreurs PDF → même message d'erreur
+        }
+      }
+    },
+
+    //═══════════════════════════════════════════════════════════════════════════════
+    // 7. EMAIL STAGE - ENVOI D'EMAIL AUTOMATIQUE
+    //═══════════════════════════════════════════════════════════════════════════════
+    /*
+     * Envoie un email avec template.
+     * 
+     * Corps et sujet acceptent variables ${data.field} et ${metaData.field}.
+     * 
+     * 3 types de cibles (targetType):
+     *   - "path-to-email": chemin vers email dans data/metaData
+     *   - "email-file": fichier texte (1 email par ligne)
+     *   - "hardcoded-email": array d'emails en dur
+     * 
+     * Exceptions mappables:
+     *   - NO_TARGET_CONFIGURED: paramètre target manquant
+     *   - FAILED_TO_GET_TARGET_NODE: chemin non trouvé
+     *   - NO_TEMPLATE: fichier template non trouvé
+     *   - NOTIFICATION_SERVICE_ERROR: erreur API email
+     */
+    
+    "email-citizen": {
+      "type": "email",
+      // Type: "email" pour envoi email
+      
+      "bodyTemplatePath": "citizen-approved.txt",
+      // Nom du fichier template dans email/
+      // Contenu texte avec variables ${} autorisées
+      
+      "subjectTemplate": "Demande approuvée - ${data.company.name}",
+      // Sujet de l'email (variables ${} autorisées)
+      
+      "targetType": "path-to-email",
+      // Type de cible (voir variantes ci-dessous)
+      
+      "targetPath": "data.person.email",
+      // Si targetType = "path-to-email": chemin vers l'email
+      
+      "enableUndefinedVariableException": true,
+      // Si true: exception si variable ${} non trouvée (défaut: true)
+      // Si false: ignore variables manquantes (remplace par "")
+      
+      "transitions": {
+        "type": "single",
+        "nextStage": "APPROVED",
+        
+        "onStageException": {
+          "NO_TARGET_CONFIGURED": "ERROR-email",
+          "FAILED_TO_GET_TARGET_NODE": "ERROR-email",
+          "NO_TEMPLATE": "ERROR-email",
+          "NOTIFICATION_SERVICE_ERROR": "APPROVED"
+          // Erreur email pas bloquante → on continue vers APPROVED
+        }
+      }
+    },
+
+    // VARIANTE EMAIL: fichier texte (multiple destinataires)
+    "email-officials": {
+      "type": "email",
+      "bodyTemplatePath": "official-notification.txt",
+      "subjectTemplate": "Nouvelle demande - ${data.applicant.name}",
+      
+      "targetType": "email-file",
+      // Type: "email-file" pour fichier texte
+      
+      "targetsFile": "official-emails.txt",
+      // Nom du fichier dans email/
+      // Format: 1 email par ligne
+      /*
+      Contenu de email/official-emails.txt:
+      admin@ministry.bj
+      reviewer1@ministry.bj
+      reviewer2@ministry.bj
+      */
+      
+      "enableUndefinedVariableException": false,
+      
+      "transitions": {
+        "type": "single",
+        "nextStage": "REQUESTED"
+      }
+    },
+
+    // VARIANTE EMAIL: emails hardcodés
+    "email-admins": {
+      "type": "email",
+      "bodyTemplatePath": "admin-alert.txt",
+      "subjectTemplate": "ALERTE: Nouvelle demande prioritaire",
+      
+      "targetType": "hardcoded-email",
+      // Type: "hardcoded-email" pour liste fixe
+      
+      "targets": ["admin@gouv.bj", "supervisor@gouv.bj"],
+      // Array d'emails en dur
+      
+      "transitions": {
+        "type": "single",
+        "nextStage": "REQUESTED"
+      }
+    },
+
+    //═══════════════════════════════════════════════════════════════════════════════
+    // 8. NOTIFICATION STAGE - ENVOI DE SMS
+    //═══════════════════════════════════════════════════════════════════════════════
+    /*
+     * Envoie un SMS via service de notification.
+     * 
+     * Template accepte variables ${data.field} et ${metaData.field}.
+     * 
+     * 3 types de cibles (targetType):
+     *   - "path-to-npi": NPI → cherche téléphone dans DB citoyen
+     *   - "path-to-nr": chemin vers numéro téléphone (indicatif +229 ajouté auto)
+     *   - "hardcoded-nr": numéro en dur
+     * 
+     * Exceptions mappables:
+     *   - FAILED_TO_GET_TARGET_NODE: chemin non trouvé
+     *   - INVALID_PHONE_NUMBER: numéro non numérique
+     *   - NO_VALID_TARGETS: aucune cible valide
+     *   - NO_TEMPLATE: template non trouvé
+     *   - NOTIFICATION_SERVICE_ERROR: erreur API SMS
+     *   - INVALID_CONFIG: targetType non supporté
+     */
+    
+    "notify-citizen": {
+      "type": "notification",
+      // Type: "notification" pour envoi SMS
+      
+      "template": "citizen-approved.txt",
+      // Nom du fichier template dans notification/
+      // Contenu texte avec variables ${}
+      
+      "targetType": "path-to-npi",
+      // Type: "path-to-npi" (cherche tel via NPI)
+      
+      "target": "metaData.citizen.0",
+      // Chemin vers le NPI dans metaData
+      // Le système cherche automatiquement le téléphone dans la DB citoyen
+      
+      "transitions": {
+        "type": "single",
+        "nextStage": "APPROVED",
+        
+        "onStageException": {
+          "FAILED_TO_GET_TARGET_NODE": "ERROR-sms",
+          "INVALID_PHONE_NUMBER": "ERROR-sms",
+          "NO_VALID_TARGETS": "ERROR-sms",
+          "NO_TEMPLATE": "ERROR-sms",
+          "NOTIFICATION_SERVICE_ERROR": "APPROVED",
+          // Erreur SMS pas bloquante
+          "INVALID_CONFIG": "ERROR-sms"
+        }
+      }
+    },
+
+    // VARIANTE NOTIFICATION: numéro direct
+    "notify-phone": {
+      "type": "notification",
+      "template": "reminder.txt",
+      
+      "targetType": "path-to-nr",
+      // Type: "path-to-nr" pour numéro direct
+      
+      "target": "data.contact.phone",
+      // Chemin vers le numéro (indicatif +229 ajouté automatiquement)
+      
+      "transitions": {
+        "type": "single",
+        "nextStage": "next-step"
+      }
+    },
+
+    // VARIANTE NOTIFICATION: numéro hardcodé
+    "notify-hotline": {
+      "type": "notification",
+      "template": "urgent-alert.txt",
+      
+      "targetType": "hardcoded-nr",
+      // Type: "hardcoded-nr" pour numéro fixe
+      
+      "target": "+22997123456",
+      // Numéro complet avec indicatif
+      
+      "transitions": {
+        "type": "single",
+        "nextStage": "next-step"
+      }
+    },
+
+    //═══════════════════════════════════════════════════════════════════════════════
+    // 9. PERSON-DATA STAGE - RÉCUPÉRATION DONNÉES CITOYEN
+    //═══════════════════════════════════════════════════════════════════════════════
+    /*
+     * Récupère les données d'un citoyen depuis la DB (par NPI).
+     * Place les données dans data/metaData selon mapping défini.
+     * 
+     * Champs disponibles (dataPoints):
+     *   Identité: first_name, last_name, marital_name, sex
+     *   Naissance: birth_date, birth_country_code, birth_department,
+     *              birth_town, birth_district, birth_village, birth_place
+     *   Résidence: residence_department, residence_town, residence_district,
+     *              residence_village, residence_address
+     *   Contact: email, phone_country_code, phone_number
+     *   Autre: nationality, mother_npi, father_npi
+     * 
+     * Exceptions mappables:
+     *   - CANNOT_GET_NPI: NPI non trouvé au chemin spécifié
+     *   - CANNOT_FIND_PERSON: aucun citoyen avec ce NPI dans DB
+     */
+    
+    "get-citizen-data": {
+      "type": "person-data",
+      // Type: "person-data" pour récupération données citoyen
+      
+      "npiSource": "metaData.citizen.0",
+      // Chemin vers le NPI dans data/metaData
+      // Généralement: "metaData.citizen.0" (auto-créé au start)
+      
+      "skipIfNoNpi": false,
+      // Si true et NPI absent: stage réussit sans rien faire
+      // Si false et NPI absent: CANNOT_GET_NPI exception
+      
+      "dataPoints": {
+        // Mapping: nom_champ_DB: "destination.dans.data"
+        
+        // Identité
+        "first_name": "data.person.first_name",
+        "last_name": "data.person.last_name",
+        "marital_name": "data.person.marital_name",
+        "sex": "data.person.sex",
+        
+        // Naissance
+        "birth_date": "data.person.birth_date",
+        "birth_country_code": "data.person.birth_country",
+        "birth_department": "data.person.birth_department",
+        "birth_town": "data.person.birth_town",
+        
+        // Résidence
+        "residence_department": "data.person.residence_department",
+        "residence_town": "data.person.residence_town",
+        "residence_address": "data.person.residence_address",
+        
+        // Contact
+        "email": "data.person.email",
+        "phone_country_code": "data.person.phone_code",
+        "phone_number": "data.person.phone_number",
+        
+        // Autre
+        "nationality": "data.person.nationality",
+        "mother_npi": "data.person.mother_npi",
+        "father_npi": "data.person.father_npi"
+      },
+      
+      "transitions": {
+        "type": "single",
+        "nextStage": "citizen-input",
+        
+        "onStageException": {
+          "CANNOT_GET_NPI": "ERROR-person-data",
+          "CANNOT_FIND_PERSON": "ERROR-person-not-found"
+        }
+      }
+    },
+
+    //═══════════════════════════════════════════════════════════════════════════════
+    // 10. PAYMENT STAGE - PAIEMENT KKIAPAY/FEDAPAY
+    //═══════════════════════════════════════════════════════════════════════════════
+    /*
+     * Requiert un paiement via KKiaPay.
+     * 
+     * Montant:
+     *   - "amount": montant fixe (ex: "5000")
+     *   - "dynamicAmount": chemin vers montant dans data
+     *   ⚠️ Exactement 1 des 2 est OBLIGATOIRE
+     * 
+     * Mode:
+     *   - sandbox=true: mode test (pas de vrai paiement)
+     *   - sandbox=false: mode production
+     * 
+     * ⚠️ EXCEPTIONS NON MAPPABLES!
+     * Le paiement doit réussir pour continuer.
+     * Si échec (transaction ratée, montant incorrect, etc.),
+     * l'utilisateur reste bloqué jusqu'à paiement réussi.
+     * 
+     * Voir documentation: https://docs.kkiapay.me/
+     */
+    
+    "payment-stage": {
+      "type": "pay",
+      // Type: "pay" pour paiement
+      
+      // OPTION 1: Montant fixe
+      "amount": "5000",
+      // Montant en FCFA (string)
+      // ⚠️ Mutuellement exclusif avec dynamicAmount
+      
+      // OPTION 2: Montant dynamique (décommenter pour utiliser)
+      /*
+      "dynamicAmount": "data.calculated_fee",
+      // Chemin vers montant dans data/metaData
+      // La valeur doit être un nombre ou string numérique
+      // ⚠️ Mutuellement exclusif avec amount
+      */
+      
+      "publicKey": "<VOTRE_PUBLIC_KEY_KKIAPAY>",
+      // Clé publique KKiaPay (fournie par le service)
+      
+      "privateKey": "<VOTRE_PRIVATE_KEY_KKIAPAY>",
+      // Clé privée KKiaPay (fournie par le service)
+      
+      "secret": "<VOTRE_SECRET_KKIAPAY>",
+      // Secret KKiaPay (fourni par le service)
+      
+      "sandbox": true,
+      // true: mode test (aucun vrai paiement)
+      // false: mode production (vrais paiements)
+      
+      "transitions": {
+        "type": "single",
+        "nextStage": "gen-receipt"
+        // Aucun onStageException possible!
+      }
+    },
+
+    //═══════════════════════════════════════════════════════════════════════════════
+    // 11. HARDCODED-DATA STAGE - INJECTION DE DONNÉES FIXES
+    //═══════════════════════════════════════════════════════════════════════════════
+    /*
+     * Injecte des données fixes dans data ou metaData.
+     * 
+     * Merge: SHALLOW (comme UI stage)
+     *   - Champs root-level: ajoutés ou écrasés
+     *   - Objets imbriqués: écrasés entièrement
+     * 
+     * Usages courants:
+     *   - Flags de branchement
+     *   - Valeurs par défaut
+     *   - Marqueurs de statut
+     *   - Horodatage (si variables système supportées)
+     * 
+     * Aucune exception
+     */
+    
+    "set-approval-flag": {
+      "type": "hardcoded-data",
+      // Type: "hardcoded-data" pour injection données
+      
+      "writeData": {
+        // Objet à merger dans data/metaData
+        
+        "metaData": {
+          "status": "approved",
+          "approvedBy": "system",
+          "processedDate": "2025-10-24"
+        },
+        
+        "data": {
+          "paymentDone": "true",
+          "certificateIssued": "true"
+        }
+      },
+      
+      "transitions": {
+        "type": "single",
+        "nextStage": "gen-certificate"
+      }
+    },
+
+    // VARIANTE: définir type pour branchement
+    "set-type-employee": {
+      "type": "hardcoded-data",
+      "writeData": {
+        "metaData": {
+          "userType": "employee"
+          // Utilisé plus tard pour branchement map-by-meta
+        }
+      },
+      "transitions": {
+        "type": "single",
+        "nextStage": "process-employee"
+      }
+    },
+
+    //═══════════════════════════════════════════════════════════════════════════════
+    // 12. BLACKLIST STAGE - SUPPRESSION DE CHAMPS
+    //═══════════════════════════════════════════════════════════════════════════════
+    /*
+     * Supprime des champs de data/metaData.
+     * 
+     * Usages courants:
+     *   - Nettoyer données temporaires
+     *   - Supprimer commentaires d'un chemin précédent
+     *   - Retirer flags de contrôle
+     * 
+     * Aucune exception
+     */
+    
+    "clean-temp-data": {
+      "type": "blacklist",
+      // Type: "blacklist" pour suppression
+      
+      "blacklist": [
+        // Array de chemins à supprimer (notation pointée)
+        "metaData._comment",
+        "metaData.tempFlag",
+        "data.formDraft",
+        "data.intermediate.calculation"
+      ],
+      
+      "transitions": {
+        "type": "single",
+        "nextStage": "email-official"
+      }
+    },
+
+    // VARIANTE: utiliser blacklist comme "router" (aucune suppression)
+    "route-by-type": {
+      "type": "blacklist",
+      "blacklist": [],
+      // Array vide = aucune suppression (juste routing)
+      
+      "transitions": {
+        "type": "map-by-meta",
+        "metaPathToKey": ["userType"],
+        "map": {
+          "employee": "process-employee",
+          "manager": "process-manager",
+          "contractor": "process-contractor"
+        }
+      }
+    },
+
+    //═══════════════════════════════════════════════════════════════════════════════
+    // 13. ALERT STAGE - AFFICHAGE MESSAGE UTILISATEUR
+    //═══════════════════════════════════════════════════════════════════════════════
+    /*
+     * Affiche un message à l'utilisateur.
+     * 
+     * Types d'alerte:
+     *   - "ERROR": rouge, pour erreurs
+     *   - "WARNING": orange, pour avertissements
+     *   - "SUCCESS": vert, pour succès
+     * 
+     * Usages courants:
+     *   - Feedback après échec UXP
+     *   - Messages d'erreur custom
+     *   - Confirmations
+     * 
+     * Aucune exception
+     */
+    
+    "ERROR-uxp": {
+      "type": "alert",
+      // Type: "alert" pour message
+      
+      "alertType": "ERROR",
+      // Type: "ERROR", "WARNING", ou "SUCCESS"
+      
+      "message": {
+        "en": "An error occurred while contacting the external service. Please try again later.",
+        "fr": "Une erreur s'est produite lors de la communication avec le service externe. Veuillez réessayer plus tard."
+      },
+      // Message traduit affiché à l'utilisateur
+      
+      "clearMessages": true,
+      // true: efface messages/erreurs précédents
+      // false: ajoute ce message aux précédents
+      // Défaut: true
+      
+      "transitions": {
+        "type": "single",
+        "nextStage": "citizen-input"
+        // Souvent: retour au stage précédent pour retry
+      }
+    },
+
+    // VARIANTE: message succès
+    "SUCCESS-submitted": {
+      "type": "alert",
+      "alertType": "SUCCESS",
+      "message": {
+        "en": "Your application has been successfully submitted.",
+        "fr": "Votre demande a été soumise avec succès."
+      },
+      "clearMessages": true,
+      "transitions": {
+        "type": "single",
+        "nextStage": "REQUESTED"
+      }
+    },
+
+    // VARIANTE: avertissement (conserve messages précédents)
+    "WARNING-incomplete": {
+      "type": "alert",
+      "alertType": "WARNING",
+      "message": {
+        "en": "Some information may be incomplete. Please review before submitting.",
+        "fr": "Certaines informations peuvent être incomplètes. Veuillez vérifier avant de soumettre."
+      },
+      "clearMessages": false,
+      // false = conserve les messages précédents
+      "transitions": {
+        "type": "single",
+        "nextStage": "review-form"
+      }
+    },
+
+    //═══════════════════════════════════════════════════════════════════════════════
+    // 14. SHARE-FILES STAGE - PARTAGE ZIP MULTI-FICHIERS
+    //═══════════════════════════════════════════════════════════════════════════════
+    /*
+     * Génère un lien unique pour télécharger TOUS les fichiers de la demande en ZIP.
+     * 
+     * ⚠️ SÉCURITÉ:
+     *   - Le lien est PUBLIC (pas d'authentification)
+     *   - Le lien est PERMANENT (aucune expiration)
+     *   - À utiliser avec précaution!
+     * 
+     * Le ZIP contient tous les fichiers liés à la demande
+     * (y compris ceux ajoutés après ce stage).
+     * 
+     * Exception mappable:
+     *   - CANT_GENERATE_UNIQUE_CODE: échec génération code unique
+     */
+    
+    "share-all-files": {
+      "type": "share-files",
+      // Type: "share-files" pour partage ZIP
+      
+      "codePath": "data.files.accessCode",
+      // Chemin où stocker le code d'accès unique généré
+      
+      "baseUrlPath": "data.files.baseUrl",
+      // Chemin où stocker l'URL de base du portail
+      
+      "fileNamePath": "data.files.zipName",
+      // Chemin où stocker le nom du fichier ZIP
+      
+      "zipFileName": "Demande_${data.person.last_name}_${data.person.first_name}",
+      // Template du nom du ZIP (variables ${} autorisées)
+      
+      "transitions": {
+        "type": "single",
+        "nextStage": "email-official"
+      }
+      
+      // URL finale générée:
+      // ${data.files.baseUrl}/api/portal/shared/files/${data.files.accessCode}
+    },
+
+    //═══════════════════════════════════════════════════════════════════════════════
+    // 15. SHARE-ONE-PDF STAGE - PARTAGE PDF UNIQUE
+    //═══════════════════════════════════════════════════════════════════════════════
+    /*
+     * Génère un lien de partage pour UN PDF spécifique.
+     * 
+     * Similaire à share-files mais pour un seul document.
+     * Même avertissements sécurité (public + permanent).
+     * 
+     * Exception mappable:
+     *   - CANT_GENERATE_UNIQUE_CODE: échec génération code unique
+     */
+    
+    "share-certificate": {
+      "type": "share-one-pdf",
+      // Type: "share-one-pdf" pour partage PDF unique
+      
+      "codePath": "data.certificate.shareCode",
+      "baseUrlPath": "data.certificate.baseUrl",
+      "fileNamePath": "data.certificate.fileName",
+      
+      "transitions": {
+        "type": "single",
+        "nextStage": "email-citizen"
+      }
+    },
+
+    //═══════════════════════════════════════════════════════════════════════════════
+    // 16. PATTERNS DE GESTION D'ERREURS COMPLETS
+    //═══════════════════════════════════════════════════════════════════════════════
+    
+    // Pattern: UXP avec alertes d'erreur spécifiques
+    "uxp-critical": {
+      "type": "uxp-rest",
+      "templateFile": "critical-request.json",
+      "responseMapping": {
+        "data.result": {
+          "pointer": "/result",
+          "required": true
+        }
+      },
+      "transitions": {
+        "type": "single",
+        "nextStage": "SUCCESS-data-retrieved",
+        "onStageException": {
+          // Stratégie: alertes différentes selon type d'erreur
+          "MISSING_REQUIRED_NODE": "ERROR-data-incomplete",
+          "CONNECTION_ERROR": "ERROR-connection-failed",
+          "WEB_APPLICATION_EXCEPTION": "ERROR-service-unavailable",
+          "PROCESSING_ERROR": "ERROR-unexpected",
+          "INVALID_CONFIGURATION": "ERROR-unexpected",
+          "MISSING_TEMPLATE_VARIABLE": "ERROR-unexpected"
+        }
+      }
+    },
+
+    "ERROR-data-incomplete": {
+      "type": "alert",
+      "alertType": "ERROR",
+      "message": {
+        "en": "The external service returned incomplete data. This may be temporary.",
+        "fr": "Le service externe a retourné des données incomplètes. Ceci peut être temporaire."
+      },
+      "clearMessages": true,
+      "transitions": {
+        "type": "single",
+        "nextStage": "search-form"
+      }
+    },
+
+    "ERROR-connection-failed": {
+      "type": "alert",
+      "alertType": "ERROR",
+      "message": {
+        "en": "Unable to connect to the external service. Please check your internet connection.",
+        "fr": "Impossible de se connecter au service externe. Vérifiez votre connexion internet."
+      },
+      "clearMessages": true,
+      "transitions": {
+        "type": "single",
+        "nextStage": "search-form"
+      }
+    },
+
+    "ERROR-service-unavailable": {
+      "type": "alert",
+      "alertType": "WARNING",
+      "message": {
+        "en": "The external service is temporarily unavailable. Please try again later.",
+        "fr": "Le service externe est temporairement indisponible. Veuillez réessayer plus tard."
+      },
+      "clearMessages": true,
+      "transitions": {
+        "type": "single",
+        "nextStage": "search-form"
+      }
+    },
+
+    //═══════════════════════════════════════════════════════════════════════════════
+    // 17. PATTERNS DE WORKFLOW COMPLEXES
+    //═══════════════════════════════════════════════════════════════════════════════
+    
+    // Pattern: Main stage avec 2 chemins (citoyen + officiel)
+    "SUBMITTED": {
+      "type": "main",
+      "shortTitle": {
+        "en": "SUBMITTED",
+        "fr": "SOUMISE"
+      },
+      "title": {
+        "en": "Application awaiting review",
+        "fr": "Demande en attente de révision"
+      },
+      "transitions": [
+        // Chemin 1: citoyen peut modifier
+        {
+          "id": "citizen-edit",
+          "title": {
+            "en": "Edit application",
+            "fr": "Modifier la demande"
+          },
+          "nextStage": "citizen-edit-form",
+          "resultMainStages": ["SUBMITTED"],
+          "permissions": {
+            "type": "meta-array",
+            "actor": "CITIZEN",
+            "metaPathToArray": ["citizen"]
+          }
+        },
+        // Chemin 2: officiel peut réviser
+        {
+          "id": "official-review-path",
+          "title": {
+            "en": "Review application",
+            "fr": "Examiner la demande"
+          },
+          "nextStage": "official-review",
+          "resultMainStages": ["APPROVED", "REJECTED", "CHANGES-REQUESTED"],
+          "permissions": {
+            "type": "hardcoded-array",
+            "actor": "OFFICIAL",
+            "array": ["ReviewGroup", "ManagerGroup"]
+          }
+        }
+      ]
+    },
+
+    //═══════════════════════════════════════════════════════════════════════════════
+    // 18. STAGES FINAUX ADDITIONNELS
+    //═══════════════════════════════════════════════════════════════════════════════
+    
+    "CANCELLED": {
+      "type": "main",
+      "shortTitle": {
+        "en": "CANCELLED",
+        "fr": "ANNULÉE"
+      },
+      "title": {
+        "en": "The application has been cancelled",
+        "fr": "La demande a été annulée"
+      },
+      "flags": ["final"],
+      // Pas de accept/reject = couleur neutre
+      "transitions": []
+    },
+
+    "ISSUED": {
+      "type": "main",
+      "shortTitle": {
+        "en": "ISSUED",
+        "fr": "DÉLIVRÉE"
+      },
+      "title": {
+        "en": "The certificate has been issued",
+        "fr": "Le certificat a été délivré"
+      },
+      "flags": ["final", "accept"],
+      "transitions": []
+    },
+
+    //═══════════════════════════════════════════════════════════════════════════════
+    // NOTES ET BONNES PRATIQUES
+    //═══════════════════════════════════════════════════════════════════════════════
+    /*
+     * ✅ TOUJOURS:
+     *   - 1 seul stage "start"
+     *   - Au moins 1 main stage final avec flag "final"
+     *   - Gérer onStageException pour stages critiques (uxp, ui, email)
+     *   - Tester chemins d'erreur autant que chemins de succès
+     *   - Utiliser shortTitle court (1-2 mots) pour main stages
+     *   - Préfixer stages automatiques minuscules, main stages MAJUSCULES
+     * 
+     * ⚠️ ATTENTION:
+     *   - Shallow merge UI/hardcoded: objets imbriqués écrasés entièrement
+     *   - Variables ${} sensibles à la casse
+     *   - share-files génère lien PERMANENT et PUBLIC (sécurité!)
+     *   - Payment exceptions NON mappables (paiement obligatoire)
+     *   - Boucles infinies possibles avec map-by-meta mal configuré
+     * 
+     * 📚 RÉFÉRENCES:
+     *   - Configuration UI: ui/README.md + bj-citizen-portal-ui-stage.adoc
+     *   - Templates UXP: uxp/README.md + bj-citizen-portal-uxp-integration.adoc
+     *   - Templates PDF: pdf/README.md + bj-citizen-portal-pdf-generation.adoc
+     *   - Doc complète: bj-citizen-portal-service-development.md
+     */
+
+  }
+}

@@ -1,0 +1,21 @@
+Bonjour ${data.person.first_name} ${data.person.last_name},
+
+Nous avons le plaisir de vous informer que votre demande a été approuvée.
+
+Détails de la demande :
+- Numéro de référence : ${metaData.request_id}
+- Date de soumission : ${metaData.submission_date}
+- Date d'approbation : ${metaData.approval_date}
+
+${metaData.official.approval_notes}
+
+Vous pouvez télécharger votre certificat en cliquant sur le lien suivant :
+${data.certificate.baseUrl}/api/portal/shared/files/${data.certificate.shareCode}
+
+Ce lien est valable de manière permanente.
+
+Pour toute question, n'hésitez pas à nous contacter.
+
+Cordialement,
+Le Portail Citoyen Béninois
+Ministère du Développement Numérique

@@ -57,3 +57,7 @@ e2b-template-*
 repomix-output.txt
 bun.lockb
 .env*.local
+
+
+#Ignore vscode AI rules
+.github/instructions/codacy.instructions.md

@@ -1,0 +1,511 @@
+{
+  "form": [
+    {
+      "id": "section_personal",
+      "type": "MARKDOWN_DESCRIPTION",
+      "required": false,
+      "label": {
+        "en": "## Personal Information\n\nPlease provide your personal details below.",
+        "fr": "## Informations personnelles\n\nVeuillez fournir vos informations personnelles ci-dessous."
+      }
+    },
+    {
+      "id": "first_name",
+      "type": "TEXT",
+      "required": true,
+      "label": {
+        "en": "First name",
+        "fr": "Prénom"
+      },
+      "path": "data.person.first_name",
+      "validations": [
+        {
+          "type": "MIN_LENGTH",
+          "value": 2,
+          "errorMessage": {
+            "en": "First name must be at least 2 characters",
+            "fr": "Le prénom doit contenir au moins 2 caractères"
+          }
+        },
+        {
+          "type": "MAX_LENGTH",
+          "value": 50,
+          "errorMessage": {
+            "en": "First name cannot exceed 50 characters",
+            "fr": "Le prénom ne peut dépasser 50 caractères"
+          }
+        }
+      ]
+    },
+    {
+      "id": "last_name",
+      "type": "TEXT",
+      "required": true,
+      "label": {
+        "en": "Last name",
+        "fr": "Nom de famille"
+      },
+      "path": "data.person.last_name",
+      "validations": [
+        {
+          "type": "MIN_LENGTH",
+          "value": 2,
+          "errorMessage": {
+            "en": "Last name must be at least 2 characters",
+            "fr": "Le nom doit contenir au moins 2 caractères"
+          }
+        },
+        {
+          "type": "MAX_LENGTH",
+          "value": 50,
+          "errorMessage": {
+            "en": "Last name cannot exceed 50 characters",
+            "fr": "Le nom ne peut dépasser 50 caractères"
+          }
+        }
+      ]
+    },
+    {
+      "id": "email",
+      "type": "TEXT",
+      "required": true,
+      "label": {
+        "en": "Email address",
+        "fr": "Adresse email"
+      },
+      "path": "data.person.email",
+      "validations": [
+        {
+          "type": "REGEX",
+          "value": "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$",
+          "errorMessage": {
+            "en": "Please enter a valid email address",
+            "fr": "Veuillez saisir une adresse email valide"
+          }
+        }
+      ]
+    },
+    {
+      "id": "phone",
+      "type": "TEXT",
+      "required": true,
+      "label": {
+        "en": "Phone number",
+        "fr": "Numéro de téléphone"
+      },
+      "path": "data.person.phone",
+      "validations": [
+        {
+          "type": "REGEX",
+          "value": "^[0-9]{8}$",
+          "errorMessage": {
+            "en": "Phone number must be 8 digits",
+            "fr": "Le numéro doit contenir 8 chiffres"
+          }
+        }
+      ]
+    },
+    {
+      "id": "birth_date",
+      "type": "DATE",
+      "required": true,
+      "label": {
+        "en": "Date of birth",
+        "fr": "Date de naissance"
+      },
+      "path": "data.person.birth_date",
+      "validations": [
+        {
+          "type": "DATE_BEFORE_NOW",
+          "errorMessage": {
+            "en": "Birth date must be in the past",
+            "fr": "La date de naissance doit être passée"
+          }
+        }
+      ]
+    },
+    {
+      "id": "gender",
+      "type": "STATIC_RADIO_LIST",
+      "required": true,
+      "label": {
+        "en": "Gender",
+        "fr": "Sexe"
+      },
+      "path": "data.person.gender",
+      "options": [
+        {
+          "label": {
+            "en": "Male",
+            "fr": "Masculin"
+          },
+          "value": "M"
+        },
+        {
+          "label": {
+            "en": "Female",
+            "fr": "Féminin"
+          },
+          "value": "F"
+        }
+      ]
+    },
+    {
+      "id": "section_address",
+      "type": "MARKDOWN_DESCRIPTION",
+      "required": false,
+      "label": {
+        "en": "## Address Information",
+        "fr": "## Informations d'adresse"
+      }
+    },
+    {
+      "id": "residence_address",
+      "type": "TEXT_AREA",
+      "required": true,
+      "label": {
+        "en": "Residential address",
+        "fr": "Adresse de résidence"
+      },
+      "path": "data.person.residence_address",
+      "validations": [
+        {
+          "type": "MIN_LENGTH",
+          "value": 10,
+          "errorMessage": {
+            "en": "Address must be at least 10 characters",
+            "fr": "L'adresse doit contenir au moins 10 caractères"
+          }
+        },
+        {
+          "type": "MAX_LENGTH",
+          "value": 500,
+          "errorMessage": {
+            "en": "Address cannot exceed 500 characters",
+            "fr": "L'adresse ne peut dépasser 500 caractères"
+          }
+        }
+      ]
+    },
+    {
+      "id": "section_family",
+      "type": "MARKDOWN_DESCRIPTION",
+      "required": false,
+      "label": {
+        "en": "## Family Information",
+        "fr": "## Informations familiales"
+      }
+    },
+    {
+      "id": "has_children",
+      "type": "BOOLEAN",
+      "required": false,
+      "label": {
+        "en": "Do you have children?",
+        "fr": "Avez-vous des enfants ?"
+      },
+      "path": "data.person.has_children"
+    },
+    {
+      "id": "children_count",
+      "type": "NUMBER",
+      "required": false,
+      "label": {
+        "en": "Number of children",
+        "fr": "Nombre d'enfants"
+      },
+      "path": "data.person.children_count",
+      "displayConditions": [
+        {
+          "id": "has_children",
+          "value": true
+        }
+      ],
+      "validations": [
+        {
+          "type": "MIN_VALUE",
+          "value": 1,
+          "errorMessage": {
+            "en": "Must be at least 1",
+            "fr": "Doit être au moins 1"
+          }
+        },
+        {
+          "type": "MAX_VALUE",
+          "value": 20,
+          "errorMessage": {
+            "en": "Cannot exceed 20",
+            "fr": "Ne peut dépasser 20"
+          }
+        }
+      ]
+    },
+    {
+      "id": "children_list",
+      "type": "REPEATABLE",
+      "required": false,
+      "label": {
+        "en": "Children details",
+        "fr": "Détails des enfants"
+      },
+      "path": "data.person.children",
+      "displayConditions": [
+        {
+          "id": "has_children",
+          "value": true
+        }
+      ],
+      "form": [
+        {
+          "id": "child_first_name",
+          "type": "TEXT",
+          "required": true,
+          "label": {
+            "en": "Child's first name",
+            "fr": "Prénom de l'enfant"
+          },
+          "path": "first_name",
+          "validations": [
+            {
+              "type": "MIN_LENGTH",
+              "value": 2,
+              "errorMessage": {
+                "en": "First name must be at least 2 characters",
+                "fr": "Le prénom doit contenir au moins 2 caractères"
+              }
+            }
+          ]
+        },
+        {
+          "id": "child_last_name",
+          "type": "TEXT",
+          "required": true,
+          "label": {
+            "en": "Child's last name",
+            "fr": "Nom de l'enfant"
+          },
+          "path": "last_name",
+          "validations": [
+            {
+              "type": "MIN_LENGTH",
+              "value": 2,
+              "errorMessage": {
+                "en": "Last name must be at least 2 characters",
+                "fr": "Le nom doit contenir au moins 2 caractères"
+              }
+            }
+          ]
+        },
+        {
+          "id": "child_birth_date",
+          "type": "DATE",
+          "required": true,
+          "label": {
+            "en": "Child's birth date",
+            "fr": "Date de naissance de l'enfant"
+          },
+          "path": "birth_date",
+          "validations": [
+            {
+              "type": "DATE_BEFORE_NOW",
+              "errorMessage": {
+                "en": "Birth date must be in the past",
+                "fr": "La date de naissance doit être passée"
+              }
+            }
+          ]
+        },
+        {
+          "id": "child_gender",
+          "type": "STATIC_RADIO_LIST",
+          "required": true,
+          "label": {
+            "en": "Gender",
+            "fr": "Sexe"
+          },
+          "path": "gender",
+          "options": [
+            {
+              "label": {
+                "en": "Male",
+                "fr": "Masculin"
+              },
+              "value": "M"
+            },
+            {
+              "label": {
+                "en": "Female",
+                "fr": "Féminin"
+              },
+              "value": "F"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "section_documents",
+      "type": "MARKDOWN_DESCRIPTION",
+      "required": false,
+      "label": {
+        "en": "## Supporting Documents\n\n**Required documents:**\n- Identity document (ID card or passport)\n- Proof of residence (utility bill, rental agreement)\n- Recent photograph",
+        "fr": "## Documents justificatifs\n\n**Documents requis :**\n- Pièce d'identité (carte d'identité ou passeport)\n- Justificatif de domicile (facture, contrat de bail)\n- Photographie récente"
+      }
+    },
+    {
+      "id": "document_type",
+      "type": "STATIC_RADIO_LIST",
+      "required": true,
+      "label": {
+        "en": "Type of identity document",
+        "fr": "Type de pièce d'identité"
+      },
+      "path": "data.documents.identity_type",
+      "options": [
+        {
+          "label": {
+            "en": "National ID Card",
+            "fr": "Carte Nationale d'Identité"
+          },
+          "value": "ID_CARD"
+        },
+        {
+          "label": {
+            "en": "Passport",
+            "fr": "Passeport"
+          },
+          "value": "PASSPORT"
+        },
+        {
+          "label": {
+            "en": "Driving License",
+            "fr": "Permis de conduire"
+          },
+          "value": "DRIVING_LICENSE"
+        }
+      ]
+    },
+    {
+      "id": "identity_document",
+      "type": "FILE_UPLOAD",
+      "required": true,
+      "label": {
+        "en": "Upload identity document",
+        "fr": "Téléverser la pièce d'identité"
+      },
+      "uploadId": "identity-documents",
+      "validations": [
+        {
+          "type": "FILE_TYPE",
+          "value": ["pdf", "jpg", "jpeg", "png"],
+          "errorMessage": {
+            "en": "Only PDF, JPG, PNG files are allowed",
+            "fr": "Seuls les fichiers PDF, JPG, PNG sont autorisés"
+          }
+        },
+        {
+          "type": "FILE_SIZE_MAX",
+          "value": 5242880,
+          "errorMessage": {
+            "en": "File size cannot exceed 5MB",
+            "fr": "La taille du fichier ne peut dépasser 5Mo"
+          }
+        }
+      ]
+    },
+    {
+      "id": "proof_of_residence",
+      "type": "FILE_UPLOAD",
+      "required": true,
+      "label": {
+        "en": "Upload proof of residence",
+        "fr": "Téléverser le justificatif de domicile"
+      },
+      "uploadId": "residence-proof",
+      "validations": [
+        {
+          "type": "FILE_TYPE",
+          "value": ["pdf", "jpg", "jpeg", "png"],
+          "errorMessage": {
+            "en": "Only PDF, JPG, PNG files are allowed",
+            "fr": "Seuls les fichiers PDF, JPG, PNG sont autorisés"
+          }
+        },
+        {
+          "type": "FILE_SIZE_MAX",
+          "value": 5242880,
+          "errorMessage": {
+            "en": "File size cannot exceed 5MB",
+            "fr": "La taille du fichier ne peut dépasser 5Mo"
+          }
+        }
+      ]
+    },
+    {
+      "id": "photograph",
+      "type": "FILE_UPLOAD",
+      "required": true,
+      "label": {
+        "en": "Upload recent photograph",
+        "fr": "Téléverser une photo récente"
+      },
+      "uploadId": "photograph",
+      "validations": [
+        {
+          "type": "FILE_TYPE",
+          "value": ["jpg", "jpeg", "png"],
+          "errorMessage": {
+            "en": "Only JPG, PNG files are allowed",
+            "fr": "Seuls les fichiers JPG, PNG sont autorisés"
+          }
+        },
+        {
+          "type": "FILE_SIZE_MAX",
+          "value": 2097152,
+          "errorMessage": {
+            "en": "File size cannot exceed 2MB",
+            "fr": "La taille du fichier ne peut dépasser 2Mo"
+          }
+        }
+      ]
+    },
+    {
+      "id": "section_declaration",
+      "type": "MARKDOWN_DESCRIPTION",
+      "required": false,
+      "label": {
+        "en": "## Declaration",
+        "fr": "## Déclaration"
+      }
+    },
+    {
+      "id": "additional_info",
+      "type": "TEXT_EDITOR",
+      "required": false,
+      "label": {
+        "en": "Additional information (optional)",
+        "fr": "Informations complémentaires (optionnel)"
+      },
+      "path": "data.additional_info"
+    },
+    {
+      "id": "accept_terms",
+      "type": "BOOLEAN",
+      "required": true,
+      "label": {
+        "en": "I certify that all information provided is accurate and complete",
+        "fr": "Je certifie que toutes les informations fournies sont exactes et complètes"
+      },
+      "path": "metaData.terms_accepted"
+    },
+    {
+      "id": "submit_button",
+      "type": "SUBMIT",
+      "required": false,
+      "label": {
+        "en": "Submit application",
+        "fr": "Soumettre la demande"
+      }
+    }
+  ]
+}

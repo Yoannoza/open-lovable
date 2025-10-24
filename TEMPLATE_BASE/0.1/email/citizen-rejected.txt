@@ -1,0 +1,17 @@
+Bonjour ${data.person.first_name} ${data.person.last_name},
+
+Nous sommes au regret de vous informer que votre demande a été rejetée.
+
+Détails de la demande :
+- Numéro de référence : ${metaData.request_id}
+- Date de soumission : ${metaData.submission_date}
+- Date de rejet : ${metaData.rejection_date}
+
+Motif du rejet :
+${metaData.official.rejection_reason}
+
+Si vous estimez que cette décision est erronée ou si vous souhaitez obtenir plus d'informations, vous pouvez nous contacter via le portail citoyen.
+
+Cordialement,
+Le Portail Citoyen Béninois
+Ministère du Développement Numérique

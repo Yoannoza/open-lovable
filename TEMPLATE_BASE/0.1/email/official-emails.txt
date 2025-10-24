@@ -1,0 +1,5 @@
+admin@ministry.bj
+reviewer1@ministry.bj
+reviewer2@ministry.bj
+manager@ministry.bj
+supervisor@ministry.bj

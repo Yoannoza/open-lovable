@@ -1,0 +1,1 @@
+Demande ${metaData.request_id} approuvée. Téléchargez votre certificat sur le portail citoyen.

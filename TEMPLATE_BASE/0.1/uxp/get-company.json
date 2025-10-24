@@ -1,0 +1,26 @@
+{
+  "method": "POST",
+  "url": "https://uxp.gouv.bj/api/v1/company/search",
+  "headers": {
+    "Content-Type": "application/json",
+    "Accept": "application/json",
+    "X-API-Key": "YOUR_API_KEY_HERE",
+    "X-Client-ID": "CITIZEN_PORTAL"
+  },
+  "body": {
+    "query": {
+      "rccm": "${data.company.rccm}",
+      "name": "${data.company.name}",
+      "ifu": "${data.company.ifu}"
+    },
+    "options": {
+      "includeDetails": true,
+      "includeRepresentatives": true
+    },
+    "requestor": {
+      "npi": "${metaData.citizen.0}",
+      "service": "${serviceId}",
+      "version": "${serviceVersion}"
+    }
+  }
+}

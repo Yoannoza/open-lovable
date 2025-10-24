@@ -1,0 +1,19 @@
+Nouvelle demande soumise
+
+Une nouvelle demande a été soumise et nécessite votre examen.
+
+Détails du demandeur :
+- Nom complet : ${data.person.first_name} ${data.person.last_name}
+- Email : ${data.person.email}
+- Téléphone : ${data.person.phone}
+
+Détails de la demande :
+- Numéro de référence : ${metaData.request_id}
+- Date de soumission : ${metaData.submission_date}
+
+Veuillez vous connecter au back-office pour examiner cette demande.
+
+Lien direct : ${data.backoffice.baseUrl}/applications/${metaData.request_id}
+
+Cordialement,
+Le Portail Citoyen Béninois (notification automatique)

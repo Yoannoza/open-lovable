@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        .footer {
+            text-align: center;
+            font-size: 9px;
+            color: #666;
+            border-top: 1px solid #ccc;
+            padding-top: 8px;
+            margin-top: 20px;
+        }
+        .page-number {
+            font-size: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="footer">
+        <div>Document généré le ${metaData.generation_date} à ${metaData.generation_time}</div>
+        <div>Numéro de référence : ${metaData.request_id}</div>
+        <div class="page-number">
+            Page <span class="page"></span> sur <span class="topage"></span>
+        </div>
+        <div style="margin-top: 5px; font-style: italic;">
+            Ce document a été généré électroniquement par le Portail Citoyen Béninois
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,133 @@
+{
+  "form": [
+    {
+      "id": "review_header",
+      "type": "MARKDOWN_DESCRIPTION",
+      "required": false,
+      "label": {
+        "en": "## Application Review\n\nPlease review the application details and make a decision.",
+        "fr": "## Examen de la demande\n\nVeuillez examiner les détails de la demande et prendre une décision."
+      }
+    },
+    {
+      "id": "decision",
+      "type": "STATIC_RADIO_LIST",
+      "required": true,
+      "label": {
+        "en": "Decision",
+        "fr": "Décision"
+      },
+      "path": "metaData.official.choice",
+      "options": [
+        {
+          "label": {
+            "en": "Approve",
+            "fr": "Approuver"
+          },
+          "value": "approve"
+        },
+        {
+          "label": {
+            "en": "Reject",
+            "fr": "Rejeter"
+          },
+          "value": "reject"
+        },
+        {
+          "label": {
+            "en": "Request changes",
+            "fr": "Demander des modifications"
+          },
+          "value": "request-changes"
+        }
+      ]
+    },
+    {
+      "id": "approval_notes",
+      "type": "TEXT_AREA",
+      "required": false,
+      "label": {
+        "en": "Approval notes (optional)",
+        "fr": "Notes d'approbation (optionnel)"
+      },
+      "path": "metaData.official.approval_notes",
+      "displayConditions": [
+        {
+          "id": "decision",
+          "value": "approve"
+        }
+      ]
+    },
+    {
+      "id": "rejection_reason",
+      "type": "TEXT_AREA",
+      "required": true,
+      "label": {
+        "en": "Reason for rejection",
+        "fr": "Motif du rejet"
+      },
+      "path": "metaData.official.rejection_reason",
+      "displayConditions": [
+        {
+          "id": "decision",
+          "value": "reject"
+        }
+      ],
+      "validations": [
+        {
+          "type": "MIN_LENGTH",
+          "value": 10,
+          "errorMessage": {
+            "en": "Rejection reason must be at least 10 characters",
+            "fr": "Le motif doit contenir au moins 10 caractères"
+          }
+        }
+      ]
+    },
+    {
+      "id": "changes_requested",
+      "type": "TEXT_AREA",
+      "required": true,
+      "label": {
+        "en": "Describe the changes required",
+        "fr": "Décrivez les modifications requises"
+      },
+      "path": "metaData.official.changes_requested",
+      "displayConditions": [
+        {
+          "id": "decision",
+          "value": "request-changes"
+        }
+      ],
+      "validations": [
+        {
+          "type": "MIN_LENGTH",
+          "value": 10,
+          "errorMessage": {
+            "en": "Changes description must be at least 10 characters",
+            "fr": "La description doit contenir au moins 10 caractères"
+          }
+        }
+      ]
+    },
+    {
+      "id": "reviewer_name",
+      "type": "TEXT",
+      "required": true,
+      "label": {
+        "en": "Reviewer name",
+        "fr": "Nom de l'examinateur"
+      },
+      "path": "metaData.official.reviewer_name"
+    },
+    {
+      "id": "submit_review",
+      "type": "SUBMIT",
+      "required": false,
+      "label": {
+        "en": "Submit decision",
+        "fr": "Soumettre la décision"
+      }
+    }
+  ]
+}

@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            font-family: 'Times New Roman', serif;
+            padding: 30px;
+            line-height: 1.6;
+        }
+        .title {
+            text-align: center;
+            font-size: 22px;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-bottom: 40px;
+            text-decoration: underline;
+        }
+        .content {
+            font-size: 13px;
+            text-align: justify;
+        }
+        .content p {
+            margin-bottom: 15px;
+        }
+        .ref-number {
+            text-align: right;
+            font-size: 11px;
+            margin-bottom: 30px;
+        }
+        .signature-block {
+            margin-top: 60px;
+        }
+        .signature-left {
+            float: left;
+            width: 45%;
+        }
+        .signature-right {
+            float: right;
+            width: 45%;
+            text-align: right;
+        }
+        .clear {
+            clear: both;
+        }
+        .stamp-placeholder {
+            margin-top: 40px;
+            text-align: center;
+            font-style: italic;
+            color: #666;
+        }
+        .info-box {
+            border: 1px solid #000;
+            padding: 15px;
+            margin: 20px 0;
+            background-color: #f9f9f9;
+        }
+        .info-box h3 {
+            margin-top: 0;
+            font-size: 14px;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 5px;
+        }
+        .info-row {
+            margin: 8px 0;
+        }
+        .info-label {
+            font-weight: bold;
+            display: inline-block;
+            width: 180px;
+        }
+    </style>
+</head>
+<body>
+    <div class="ref-number">
+        Réf. N° ${metaData.request_id}<br>
+        Cotonou, le ${metaData.issue_date}
+    </div>
+
+    <div class="title">
+        Attestation de ${data.certificate.type}
+    </div>
+
+    <div class="content">
+        <p>
+            Je soussigné(e), <strong>${metaData.official.name}</strong>, 
+            ${metaData.official.title},
+        </p>
+
+        <div class="info-box">
+            <h3>Informations sur le bénéficiaire</h3>
+            <div class="info-row">
+                <span class="info-label">Nom et prénom(s) :</span>
+                ${data.person.first_name} ${data.person.last_name}
+            </div>
+            <div class="info-row">
+                <span class="info-label">Né(e) le :</span>
+                ${data.person.birth_date}
+            </div>
+            <div class="info-row">
+                <span class="info-label">Sexe :</span>
+                ${data.person.gender}
+            </div>
+            <div class="info-row">
+                <span class="info-label">Résidant à :</span>
+                ${data.person.residence_address}
+            </div>
+            <div class="info-row">
+                <span class="info-label">Email :</span>
+                ${data.person.email}
+            </div>
+            <div class="info-row">
+                <span class="info-label">Téléphone :</span>
+                +229 ${data.person.phone}
+            </div>
+        </div>
+
+        <p>
+            <strong>Atteste que</strong> la personne susmentionnée a soumis une demande 
+            complète et conforme aux exigences réglementaires en vigueur.
+        </p>
+
+        <p>
+            ${data.certificate.attestation_text}
+        </p>
+
+        <p>
+            La présente attestation est délivrée à l'intéressé(e) pour servir 
+            et valoir ce que de droit.
+        </p>
+
+        <!-- Optionnel: Notes d'approbation -->
+        <p style="font-style: italic; font-size: 12px;">
+            <strong>Notes :</strong> ${metaData.official.approval_notes}
+        </p>
+    </div>
+
+    <div class="signature-block">
+        <div class="signature-left">
+            <p>
+                <strong>Le/La Demandeur(euse)</strong><br>
+                <br>
+                <br>
+                <br>
+                ${data.person.first_name} ${data.person.last_name}
+            </p>
+        </div>
+
+        <div class="signature-right">
+            <p>
+                <strong>${metaData.official.title}</strong><br>
+                <br>
+                <br>
+                <br>
+                ${metaData.official.name}
+            </p>
+        </div>
+
+        <div class="clear"></div>
+    </div>
+
+    <div class="stamp-placeholder">
+        [ Cachet et signature ]
+    </div>
+
+    <!-- QR Code optionnel pour vérification -->
+    <div style="margin-top: 40px; text-align: center;">
+        <p style="font-size: 10px;">
+            Pour vérifier l'authenticité de ce document, scannez le code QR ci-dessous<br>
+            ou visitez : ${data.verification.url}
+        </p>
+        <!-- 
+        <img src="data:image/png;base64,..." alt="QR Code" style="width: 100px; height: 100px;">
+        -->
+    </div>
+</body>
+</html>

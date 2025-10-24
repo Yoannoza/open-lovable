@@ -1,0 +1,91 @@
+{
+  "_comment": "TEMPLATE BASE - E-Service Portail Citoyen Béninois - Voir README.md pour documentation complète",
+  
+  "serviceId": "TEMPLATE_BASE",
+  "serviceVersion": "0.1",
+  "public": true,
+  
+  "stages": {
+    "start": {
+      "type": "start",
+      "shortTitle": {"en": "STARTED", "fr": "DÉBUT"},
+      "title": {"en": "Application started", "fr": "Demande démarrée"},
+      "pathTitle": {"en": "Continue application creation", "fr": "Poursuivre la demande"},
+      "permissions": {
+        "type": "meta-array",
+        "actor": "CITIZEN",
+        "metaPathToArray": ["citizen"],
+        "public": true
+      },
+      "transitions": {
+        "type": "single",
+        "nextStage": "citizen-input"
+      }
+    },
+
+    "citizen-input": {
+      "type": "ui",
+      "uiConfiguration": "citizen-input.json",
+      "transitions": {
+        "type": "single",
+        "nextStage": "REQUESTED",
+        "onStageException": {
+          "REQUIRED_FIELDS_MISSING": "citizen-input",
+          "FIELDS_NOT_ALLOWED": "citizen-input"
+        }
+      }
+    },
+
+    "REQUESTED": {
+      "type": "main",
+      "shortTitle": {"en": "REQUESTED", "fr": "DEMANDÉE"},
+      "title": {"en": "Certificate has been requested", "fr": "La demande a été soumise"},
+      "transitions": [
+        {
+          "id": "review",
+          "title": {"en": "Review the application", "fr": "Examiner la demande"},
+          "nextStage": "official-review",
+          "resultMainStages": ["APPROVED", "REJECTED"],
+          "permissions": {
+            "type": "hardcoded-array",
+            "actor": "OFFICIAL",
+            "array": ["Official-Group-1", "Official-Group-2"]
+          }
+        }
+      ]
+    },
+
+    "official-review": {
+      "type": "ui",
+      "uiConfiguration": "official-review.json",
+      "transitions": {
+        "type": "map-by-meta",
+        "metaPathToKey": ["official", "choice"],
+        "map": {
+          "approve": "APPROVED",
+          "reject": "REJECTED"
+        },
+        "onStageException": {
+          "REQUIRED_FIELDS_MISSING": "official-review",
+          "FIELDS_NOT_ALLOWED": "official-review"
+        }
+      }
+    },
+
+    "APPROVED": {
+      "type": "main",
+      "shortTitle": {"en": "APPROVED", "fr": "APPROUVÉE"},
+      "title": {"en": "The application has been approved", "fr": "La demande a été approuvée"},
+      "flags": ["final", "accept"],
+      "transitions": []
+    },
+
+    "REJECTED": {
+      "type": "main",
+      "shortTitle": {"en": "REJECTED", "fr": "REJETÉE"},
+      "title": {"en": "The application has been rejected", "fr": "La demande a été rejetée"},
+      "flags": ["final", "reject"],
+      "transitions": []
+    }
+  }
+}

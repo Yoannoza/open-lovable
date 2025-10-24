@@ -1,0 +1,16 @@
+Bonjour ${data.person.first_name} ${data.person.last_name},
+
+Votre demande a été examinée et nécessite quelques modifications avant d'être approuvée.
+
+Détails de la demande :
+- Numéro de référence : ${metaData.request_id}
+- Date de soumission : ${metaData.submission_date}
+
+Modifications requises :
+${metaData.official.changes_requested}
+
+Veuillez vous connecter au portail citoyen pour soumettre les modifications demandées.
+
+Cordialement,
+Le Portail Citoyen Béninois
+Ministère du Développement Numérique
